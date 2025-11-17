@@ -76,7 +76,18 @@ def read_file(file_path: str) -> str:
     """
     try:
         base_path = os.path.dirname(os.path.dirname(__file__))
-        full_path = os.path.join(base_path, file_path)
+        base_path_abs = os.path.abspath(base_path)
+        full_path = os.path.abspath(os.path.join(base_path, file_path))
+        
+        # Validate that the resolved path stays within the base directory
+        # Use os.path.commonpath to ensure proper containment check
+        try:
+            common_path = os.path.commonpath([base_path_abs, full_path])
+            if common_path != base_path_abs:
+                return f"Error: Path traversal detected. Access denied for path: {file_path}"
+        except ValueError:
+            # Paths are on different drives (Windows) or invalid
+            return f"Error: Path traversal detected. Access denied for path: {file_path}"
         
         with open(full_path, 'r') as f:
             content = f.read()
@@ -102,7 +113,18 @@ def list_directory(dir_path: str = ".") -> str:
     """
     try:
         base_path = os.path.dirname(os.path.dirname(__file__))
-        full_path = os.path.join(base_path, dir_path)
+        base_path_abs = os.path.abspath(base_path)
+        full_path = os.path.abspath(os.path.join(base_path, dir_path))
+        
+        # Validate that the resolved path stays within the base directory
+        # Use os.path.commonpath to ensure proper containment check
+        try:
+            common_path = os.path.commonpath([base_path_abs, full_path])
+            if common_path != base_path_abs:
+                return f"Error: Path traversal detected. Access denied for path: {dir_path}"
+        except ValueError:
+            # Paths are on different drives (Windows) or invalid
+            return f"Error: Path traversal detected. Access denied for path: {dir_path}"
         
         items = os.listdir(full_path)
         
