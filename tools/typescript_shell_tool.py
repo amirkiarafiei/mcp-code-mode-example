@@ -7,6 +7,39 @@ from langchain.tools import tool
 import subprocess
 import tempfile
 import os
+from typing import Optional
+
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+AGENT_FS_ROOT = os.path.join(PROJECT_ROOT, "agent_filesystem")
+
+
+def _resolve_agent_path(requested_path: str) -> Optional[str]:
+    """
+    Normalize and resolve a path so it stays within agent_filesystem/.
+    Returns the absolute path if valid, None otherwise.
+    """
+    base_abs = os.path.abspath(AGENT_FS_ROOT)
+    normalized = (requested_path or "").strip()
+    if not normalized or normalized == ".":
+        normalized = "."
+    normalized = normalized.lstrip("/").rstrip("/")
+
+    if normalized.startswith("agent_filesystem/"):
+        normalized = normalized[len("agent_filesystem/") :]
+    elif normalized == "agent_filesystem":
+        normalized = "."
+
+    full_path = os.path.abspath(os.path.join(base_abs, normalized))
+
+    try:
+        common_path = os.path.commonpath([base_abs, full_path])
+        if common_path != base_abs:
+            return None
+    except ValueError:
+        return None
+
+    return full_path
 
 
 @tool
@@ -24,8 +57,7 @@ def execute_typescript(code: str) -> str:
     """
     try:
         # Create a temporary file in the project root for proper imports
-        base_dir = os.path.dirname(os.path.dirname(__file__))
-        temp_file = os.path.join(base_dir, f'.tmp_exec_{os.getpid()}.ts')
+        temp_file = os.path.join(PROJECT_ROOT, f'.tmp_exec_{os.getpid()}.ts')
         
         with open(temp_file, 'w') as f:
             f.write(code)
@@ -36,7 +68,7 @@ def execute_typescript(code: str) -> str:
             capture_output=True,
             text=True,
             timeout=30,
-            cwd=base_dir
+            cwd=PROJECT_ROOT
         )
         
         # Clean up the temporary file
@@ -65,34 +97,23 @@ def execute_typescript(code: str) -> str:
 @tool
 def read_file(file_path: str) -> str:
     """
-    Read the contents of a file from the filesystem. This is a generic filesystem tool
-    that allows reading any file, including tool implementations in the agent_filesystem.
+    Read the contents of a file within the agent filesystem. Paths outside
+    `agent_filesystem/` are rejected to emulate a virtual tool directory.
     
     Args:
-        file_path: Path to the file to read, relative to the project root.
+        file_path: Path to the file to read, relative to `agent_filesystem/`.
+                   Prefixing with `agent_filesystem/` is also accepted.
     
     Returns:
         The contents of the file as a string.
     """
+    resolved = _resolve_agent_path(file_path)
+    if resolved is None:
+        return f"Error: Access denied outside agent_filesystem for path: {file_path}"
+
     try:
-        base_path = os.path.dirname(os.path.dirname(__file__))
-        base_path_abs = os.path.abspath(base_path)
-        full_path = os.path.abspath(os.path.join(base_path, file_path))
-        
-        # Validate that the resolved path stays within the base directory
-        # Use os.path.commonpath to ensure proper containment check
-        try:
-            common_path = os.path.commonpath([base_path_abs, full_path])
-            if common_path != base_path_abs:
-                return f"Error: Path traversal detected. Access denied for path: {file_path}"
-        except ValueError:
-            # Paths are on different drives (Windows) or invalid
-            return f"Error: Path traversal detected. Access denied for path: {file_path}"
-        
-        with open(full_path, 'r') as f:
-            content = f.read()
-        
-        return content
+        with open(resolved, 'r') as f:
+            return f.read()
     except FileNotFoundError:
         return f"Error: File not found at path: {file_path}"
     except Exception as e:
@@ -100,44 +121,37 @@ def read_file(file_path: str) -> str:
 
 
 @tool
-def list_directory(dir_path: str = ".") -> str:
+def list_directory(dir_path: str = "agent_filesystem") -> str:
     """
-    List the contents of a directory in the filesystem. This helps discover available
-    tools and files in the agent_filesystem structure.
+    List the contents of a directory inside the agent filesystem. This keeps discovery
+    scoped to `agent_filesystem/` to mirror the virtual tool layout described in the
+    Code Mode articles.
     
     Args:
-        dir_path: Path to the directory to list, relative to the project root.
+        dir_path: Path to the directory to list, relative to `agent_filesystem/`.
+                 Defaults to the root of the agent filesystem.
     
     Returns:
         A formatted list of files and directories.
     """
+    resolved = _resolve_agent_path(dir_path)
+    if resolved is None:
+        return f"Error: Access denied outside agent_filesystem for path: {dir_path}"
+
     try:
-        base_path = os.path.dirname(os.path.dirname(__file__))
-        base_path_abs = os.path.abspath(base_path)
-        full_path = os.path.abspath(os.path.join(base_path, dir_path))
-        
-        # Validate that the resolved path stays within the base directory
-        # Use os.path.commonpath to ensure proper containment check
-        try:
-            common_path = os.path.commonpath([base_path_abs, full_path])
-            if common_path != base_path_abs:
-                return f"Error: Path traversal detected. Access denied for path: {dir_path}"
-        except ValueError:
-            # Paths are on different drives (Windows) or invalid
-            return f"Error: Path traversal detected. Access denied for path: {dir_path}"
-        
-        items = os.listdir(full_path)
-        
-        result = f"Contents of {dir_path}:\n"
-        for item in sorted(items):
-            item_path = os.path.join(full_path, item)
-            if os.path.isdir(item_path):
-                result += f"  [DIR]  {item}/\n"
-            else:
-                result += f"  [FILE] {item}\n"
-        
-        return result
+        items = os.listdir(resolved)
     except FileNotFoundError:
         return f"Error: Directory not found at path: {dir_path}"
     except Exception as e:
         return f"Error listing directory: {str(e)}"
+
+    display_path = dir_path if dir_path else "agent_filesystem"
+    result = f"Contents of {display_path}:\n"
+    for item in sorted(items):
+        item_path = os.path.join(resolved, item)
+        if os.path.isdir(item_path):
+            result += f"  [DIR]  {item}/\n"
+        else:
+            result += f"  [FILE] {item}\n"
+
+    return result
