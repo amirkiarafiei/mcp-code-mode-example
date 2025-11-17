@@ -6,12 +6,18 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["mcp", "langchain", "ai", "agents"],
+  "keywords": [
+    "mcp",
+    "langchain",
+    "ai",
+    "agents"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "ts-node": "^10.9.1",
+    "tsx": "^4.20.6",
     "typescript": "^5.0.0"
   }
 }

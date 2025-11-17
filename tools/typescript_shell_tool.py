@@ -23,22 +23,27 @@ def execute_typescript(code: str) -> str:
         The output from executing the TypeScript code, including stdout and stderr.
     """
     try:
-        # Create a temporary file for the TypeScript code
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.ts', delete=False) as f:
-            temp_file = f.name
+        # Create a temporary file in the project root for proper imports
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        temp_file = os.path.join(base_dir, f'.tmp_exec_{os.getpid()}.ts')
+        
+        with open(temp_file, 'w') as f:
             f.write(code)
         
-        # Execute the TypeScript code using ts-node
+        # Execute the TypeScript code using tsx (better compatibility than ts-node)
         result = subprocess.run(
-            ['npx', 'ts-node', temp_file],
+            ['npx', '-y', 'tsx', temp_file],
             capture_output=True,
             text=True,
             timeout=30,
-            cwd=os.path.dirname(os.path.dirname(__file__))
+            cwd=base_dir
         )
         
         # Clean up the temporary file
-        os.unlink(temp_file)
+        try:
+            os.unlink(temp_file)
+        except:
+            pass
         
         output = result.stdout
         if result.stderr:
@@ -52,7 +57,7 @@ def execute_typescript(code: str) -> str:
     except subprocess.TimeoutExpired:
         return "Error: Code execution timed out after 30 seconds."
     except FileNotFoundError:
-        return "Error: ts-node is not installed. Please install with: npm install -g ts-node typescript"
+        return "Error: tsx is not installed. Please install with: npm install --save-dev tsx"
     except Exception as e:
         return f"Error executing TypeScript code: {str(e)}"
 

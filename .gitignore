@@ -212,3 +212,4 @@ package-lock.json
 *.js
 *.js.map
 !agent_filesystem/**/*.js
+.tmp_exec_*
