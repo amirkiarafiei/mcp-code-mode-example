@@ -177,3 +177,9 @@ MIT
 - Anthropic for pioneering the code execution with MCP approach
 - Cloudflare for their code mode implementation
 - The LangChain team for excellent agent frameworks
+
+## 📚 Additional Resources
+
+- [SUMMARY.md](./SUMMARY.md): Technical project overview
+- [CONTRIBUTING.md](./CONTRIBUTING.md): Guide for extending the examples
+- [medium.md](./medium.md): Full article
