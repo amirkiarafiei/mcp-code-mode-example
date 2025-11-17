@@ -76,6 +76,14 @@ This repository shows how representing tools as discoverable code and executing 
 
 ### Running the Examples
 
+#### Verify Installation
+First, verify all components work:
+```bash
+python test_verification.py
+```
+
+This will test all tools and TypeScript execution without requiring an API key.
+
 #### Example 1: Traditional Tool Calling
 ```bash
 python agent_example_1.py
@@ -89,6 +97,14 @@ python agent_example_2.py
 ```
 
 This loads only **3 generic tools** (filesystem + execution), discovering specific tools on-demand.
+
+#### Standalone TypeScript Example
+See the direct code execution without an LLM:
+```bash
+npx tsx agent_filesystem/example_end_to_end.ts
+```
+
+This demonstrates how data flows through code efficiently.
 
 ## 📊 What Gets Demonstrated
 
