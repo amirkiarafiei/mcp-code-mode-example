@@ -108,6 +108,80 @@ This demonstrates how data flows through code efficiently.
 
 ## 📊 What Gets Demonstrated
 
+### Visual Comparison
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    TRADITIONAL APPROACH                          │
+│                    (agent_example_1.py)                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  LLM Agent Context:                                             │
+│  ┌────────────────────────────────────────────────────────┐    │
+│  │ System Prompt                                           │    │
+│  │ ─────────────                                           │    │
+│  │ Tool 1: download_meeting_summary(...)                  │    │
+│  │   Description: Download comprehensive meeting...        │    │
+│  │   Parameters: meeting_id, include_transcript...         │    │
+│  │                                                          │    │
+│  │ Tool 2: list_team_meetings(...)                        │    │
+│  │   Description: Retrieve comprehensive list...           │    │
+│  │   Parameters: team_id, start_date, end_date...         │    │
+│  │                                                          │    │
+│  │ ... (18 more tool schemas) ...                          │    │
+│  │                                                          │    │
+│  │ Tool 20: manage_drive_versions(...)                    │    │
+│  │   Description: Manage file version history...           │    │
+│  │   Parameters: file_id, action, revision_id...          │    │
+│  └────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  Data Flow:                                                     │
+│  Teams API → [8KB in LLM context] → LLM Decision → Drive API   │
+│                                                                  │
+│  ❌ High token usage (20 tool schemas)                         │
+│  ❌ Large data through LLM context                              │
+│  ❌ All tools loaded upfront                                    │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                   CODE EXECUTION APPROACH                        │
+│                    (agent_example_2.py)                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  LLM Agent Context:                                             │
+│  ┌────────────────────────────────────────────────────────┐    │
+│  │ System Prompt                                           │    │
+│  │ ─────────────                                           │    │
+│  │ Tool 1: list_directory(dir_path)                       │    │
+│  │   Description: List filesystem contents                 │    │
+│  │                                                          │    │
+│  │ Tool 2: read_file(file_path)                           │    │
+│  │   Description: Read file contents                       │    │
+│  │                                                          │    │
+│  │ Tool 3: execute_typescript(code)                       │    │
+│  │   Description: Execute TypeScript code                  │    │
+│  └────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  Agent discovers tools from filesystem:                         │
+│  agent_filesystem/servers/teams/download_meeting_summary.ts     │
+│  agent_filesystem/servers/drive/upload_to_drive.ts              │
+│                                                                  │
+│  Writes and executes:                                           │
+│  ┌────────────────────────────────────────────────────────┐    │
+│  │ const summary = await download_meeting_summary();      │    │
+│  │ await upload_to_drive(summary, 'file.md');            │    │
+│  └────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  Data Flow:                                                     │
+│  Teams API → [TypeScript variable] → Drive API                 │
+│              (no LLM involvement)                                │
+│                                                                  │
+│  ✅ Low token usage (3 tool schemas)                            │
+│  ✅ Large data bypasses LLM context                             │
+│  ✅ Tools discovered on-demand                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### Scenario
 An agent needs to:
 1. Download a meeting summary from Teams (~8KB of text)
