@@ -119,12 +119,16 @@ The examples in this repository demonstrate both approaches side-by-side, showin
 
 As we build more sophisticated AI agents, thinking carefully about how we present tools—and how we let agents discover and compose them—will be just as important as the tools themselves. Code execution mode is one compelling answer to that challenge.
 
-## Learn More
+## Example Code
+
+*This article is accompanied by working code examples comparing both approaches. Check out `agent_example_1.py` for traditional tool calling and `agent_example_2.py` for the code execution approach.*
+
+- [Github Repository](https://github.com/amirkiarafiei/mcp-code-mode-example)
+
+## References
 
 - [Anthropic's Approach to Code Execution with MCP](https://www.anthropic.com/engineering/code-execution-with-mcp)
 - [Cloudflare's Code Mode Implementation](https://blog.cloudflare.com/code-mode/)
-- [See the code examples in this repository](./agent_example_1.py)
 
----
 
-*This article is accompanied by working code examples comparing both approaches. Check out `agent_example_1.py` for traditional tool calling and `agent_example_2.py` for the code execution approach.*
+

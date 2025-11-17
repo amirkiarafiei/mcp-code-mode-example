@@ -4,6 +4,8 @@
 
 This repository demonstrates the benefits of executing MCP (Model Context Protocol) tools as code versus traditional tool calling approaches. It includes a comprehensive Medium article explaining the concepts and working code examples comparing both approaches.
 
+>NOTE: This project uses LangChain tools and a local filesystem to simulate MCP-style tools and code execution; it doesn’t implement the MCP protocol/tools itself. This code is for educational purpose only.
+
 ## 📖 Overview
 
 When building LLM agents with many tools, two key problems emerge:
