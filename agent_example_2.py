@@ -9,9 +9,7 @@ uses the specific tools it needs by exploring the filesystem.
 
 import os
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.agents import create_agent
 
 # Import only the filesystem and execution tools (3 tools instead of 20!)
 from tools.typescript_shell_tool import (
@@ -34,13 +32,6 @@ def main():
     executes TypeScript code to chain operations efficiently.
     """
     
-    # Initialize the LLM
-    llm = ChatGoogleGenerativeAI(
-        model=os.getenv("GEMINI_MODEL", "gemini-1.5-pro"),
-        google_api_key=os.getenv("GEMINI_API_KEY"),
-        temperature=0,
-    )
-    
     # Only 3 generic tools are registered here
     tools = [
         list_directory,
@@ -48,16 +39,13 @@ def main():
         execute_typescript,
     ]
     
-    # Create prompt template
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", AGENT_2_SYSTEM_PROMPT),
-        ("human", "{input}"),
-        ("placeholder", "{agent_scratchpad}"),
-    ])
-    
-    # Create the agent
-    agent = create_tool_calling_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+    # Create the agent using the new create_agent API
+    # This automatically uses LangGraph under the hood
+    agent = create_agent(
+        model=f"google-genai:{os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')}",
+        tools=tools,
+        system_prompt=AGENT_2_SYSTEM_PROMPT,
+    )
     
     print("=" * 80)
     print("AGENT EXAMPLE 2: Code Execution Approach")
@@ -68,14 +56,18 @@ def main():
     print("=" * 80)
     print()
     
-    # Execute the task
-    result = agent_executor.invoke({"input": TASK_DESCRIPTION})
+    # Execute the task using the new invoke format
+    result = agent.invoke({
+        "messages": [{"role": "user", "content": TASK_DESCRIPTION}]
+    })
     
     print()
     print("=" * 80)
     print("RESULT:")
     print("=" * 80)
-    print(result["output"])
+    # Extract the final message content
+    final_message = result["messages"][-1]
+    print(final_message.content if hasattr(final_message, 'content') else str(final_message))
     print()
     
     # Benefits demonstrated:

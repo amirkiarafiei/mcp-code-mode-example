@@ -216,9 +216,9 @@ Read the full explanation in [`medium.md`](./medium.md), which covers:
 
 ## 🛠️ Tech Stack
 
-- **Agent Framework**: LangChain (Python)
+- **Agent Framework**: LangChain (Python) v1.0+
 - **LLM**: Google Gemini (gemini-1.5-pro)
-- **Code Execution**: TypeScript with ts-node
+- **Code Execution**: TypeScript with tsx
 - **Tools**: 20 dummy tools simulating Teams & Drive APIs
 
 ## 🔍 Key Files
