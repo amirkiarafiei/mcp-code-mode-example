@@ -1,0 +1,4 @@
+# This directory is used to simulate Google Drive
+# Files uploaded by the agent will appear here
+*
+!.gitignore
