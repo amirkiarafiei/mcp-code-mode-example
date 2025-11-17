@@ -185,6 +185,9 @@ This demonstrates how data flows through code efficiently.
 ```
 
 ### Scenario
+
+Here we simulate a scenario where user wants to download meeting summaries from MS Teams and upload it to Google Drive. The `./teams` and `./drive` directories simulate the MS Teams and Google Drive environments.
+
 An agent needs to:
 1. Download a meeting summary from Teams (~8KB of text)
 2. Upload it to Google Drive
