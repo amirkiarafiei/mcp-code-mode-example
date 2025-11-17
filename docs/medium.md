@@ -123,7 +123,11 @@ As we build more sophisticated AI agents, thinking carefully about how we presen
 
 *This article is accompanied by working code examples comparing both approaches. Check out `agent_example_1.py` for traditional tool calling and `agent_example_2.py` for the code execution approach.*
 
-- [Github Repository](https://github.com/amirkiarafiei/mcp-code-mode-example)
+- [Example Code in Github](https://github.com/amirkiarafiei/mcp-code-mode-example)
+
+## Note for AI Enthusiasts and Researchers
+
+This approach is very similar to [CodeAct](https://arxiv.org/abs/2402.01030), an agent that plans and acts in code instead of natural language, which is different than conventional [ReAct](https://arxiv.org/abs/2210.03629) agent we are used to. The Hugging Face [smolagents](https://github.com/huggingface/smolagents) library provides first-class support for this type of agents.
 
 ## References
 
