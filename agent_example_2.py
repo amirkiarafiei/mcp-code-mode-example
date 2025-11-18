@@ -10,7 +10,7 @@ uses the specific tools it needs by exploring the filesystem.
 import os
 from dotenv import load_dotenv
 from langchain.agents import create_agent
-
+from langchain_google_genai import ChatGoogleGenerativeAI
 # Import only the filesystem and execution tools (3 tools instead of 20!)
 from tools.typescript_shell_tool import (
     execute_typescript,
@@ -38,13 +38,21 @@ def main():
         read_file,
         execute_typescript,
     ]
+
+    # Initialize the LLM
+    llm = ChatGoogleGenerativeAI(
+        model=os.getenv('GEMINI_MODEL'),
+        temperature=0.0,
+        timeout=None,
+    )
     
-    # Create the agent using the new create_agent API
+    # Create the agent using the new create_agent API of Langchain v1.0
     # This automatically uses LangGraph under the hood
     agent = create_agent(
-        model=f"google-genai:{os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')}",
+        model=llm,
         tools=tools,
         system_prompt=AGENT_2_SYSTEM_PROMPT,
+        debug=True,
     )
     
     print("=" * 80)
@@ -56,7 +64,7 @@ def main():
     print("=" * 80)
     print()
     
-    # Execute the task using the new invoke format
+    # Execute the task 
     result = agent.invoke({
         "messages": [{"role": "user", "content": TASK_DESCRIPTION}]
     })
@@ -65,6 +73,7 @@ def main():
     print("=" * 80)
     print("RESULT:")
     print("=" * 80)
+    
     # Extract the final message content
     final_message = result["messages"][-1]
     print(final_message.content if hasattr(final_message, 'content') else str(final_message))

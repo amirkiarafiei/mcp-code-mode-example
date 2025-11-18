@@ -9,6 +9,7 @@ into the agent's context from the start, even though we only need 2 tools for th
 import os
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Import all the tools (this loads all 20 tool definitions into context)
 from tools.ms_teams_tools import (
@@ -41,6 +42,10 @@ from prompt import AGENT_1_SYSTEM_PROMPT, TASK_DESCRIPTION
 
 # Load environment variables
 load_dotenv()
+
+# # Enable debug mode
+# from langchain_classic.globals import set_debug
+# set_debug(True)
 
 def main():
     """
@@ -75,13 +80,21 @@ def main():
         export_drive_metadata,
         manage_drive_versions,
     ]
+
+    # Initialize the LLM
+    llm = ChatGoogleGenerativeAI(
+        model=os.getenv('GEMINI_MODEL'),
+        temperature=0.0,
+        timeout=None,
+    )
     
-    # Create the agent using the new create_agent API
+    # Create the agent using the new create_agent API of Langchain v1.0
     # This automatically uses LangGraph under the hood
     agent = create_agent(
-        model=f"google-genai:{os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')}",
+        model=llm,
         tools=tools,
         system_prompt=AGENT_1_SYSTEM_PROMPT,
+        debug=True,
     )
     
     print("=" * 80)
@@ -92,7 +105,7 @@ def main():
     print("=" * 80)
     print()
     
-    # Execute the task using the new invoke format
+    # Execute the task 
     result = agent.invoke({
         "messages": [{"role": "user", "content": TASK_DESCRIPTION}]
     })
@@ -101,6 +114,7 @@ def main():
     print("=" * 80)
     print("RESULT:")
     print("=" * 80)
+
     # Extract the final message content
     final_message = result["messages"][-1]
     print(final_message.content if hasattr(final_message, 'content') else str(final_message))
