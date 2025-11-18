@@ -64,8 +64,6 @@ def upload_to_drive(
         return f"""{{
             "file_id": "1xyz789abc123def",
             "file_name": "{file_name}",
-            "web_view_link": "https://drive.google.com/file/d/1xyz789abc123def/view",
-            "download_link": "https://drive.google.com/uc?id=1xyz789abc123def&export=download",
             "folder_id": "{folder_id}",
             "upload_time": "{datetime.datetime.now().isoformat()}",
             "size_bytes": {len(file_content)},
