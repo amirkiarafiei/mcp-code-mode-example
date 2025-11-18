@@ -5,7 +5,6 @@ This tool allows the agent to execute TypeScript code for the code execution app
 
 from langchain.tools import tool
 import subprocess
-import tempfile
 import os
 from typing import Optional
 
@@ -56,8 +55,9 @@ def execute_typescript(code: str) -> str:
         The output from executing the TypeScript code, including stdout and stderr.
     """
     try:
-        # Create a temporary file in the project root for proper imports
-        temp_file = os.path.join(PROJECT_ROOT, f'.tmp_exec_{os.getpid()}.ts')
+        # Create a temporary file in the agent_filesystem directory for proper imports
+        # relative to the tool implementations
+        temp_file = os.path.join(AGENT_FS_ROOT, f'.tmp_exec_{os.getpid()}.ts')
         
         with open(temp_file, 'w') as f:
             f.write(code)

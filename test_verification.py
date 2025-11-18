@@ -88,8 +88,8 @@ def test_end_to_end_typescript():
     from tools.typescript_shell_tool import execute_typescript
     
     code = r'''
-import { download_meeting_summary } from './agent_filesystem/servers/teams/download_meeting_summary';
-import { upload_to_drive } from './agent_filesystem/servers/drive/upload_to_drive';
+import { download_meeting_summary } from './servers/teams/download_meeting_summary';
+import { upload_to_drive } from './servers/drive/upload_to_drive';
 
 async function main() {
   console.log('1. Downloading meeting summary...');
