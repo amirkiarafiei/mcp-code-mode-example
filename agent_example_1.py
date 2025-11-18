@@ -40,12 +40,26 @@ from tools.google_drive_tools import (
 
 from prompt import AGENT_1_SYSTEM_PROMPT, TASK_DESCRIPTION
 
+from langchain_core.messages import AIMessage, ToolMessage
+from tokenizer import count_tokens, estimate_tools_tokens
+
 # Load environment variables
 load_dotenv()
 
 # # Enable debug mode
 # from langchain_classic.globals import set_debug
 # set_debug(True)
+
+def print_agent_overview(stage: str, tools_count: int, input_tokens: int, tool_calls: int, output_tokens: int, total_tokens: int):
+    print("=" * 80) 
+    print(f"AGENT CONTEXT OVERVIEW {stage}:")
+    print("=" * 80) 
+    print(f"Available Tools: {tools_count}")
+    print(f"Input Tokens: {input_tokens}")
+    print(f"Tool Calls: {tool_calls}")
+    print(f"Generated Tokens: {output_tokens}" if stage == "before" else f"Output Tokens: {output_tokens}")
+    print(f"Total Tokens in Context Window: {total_tokens}")
+    print("=" * 80)
 
 def main():
     """
@@ -97,11 +111,27 @@ def main():
         debug=True,
     )
     
+    # Calculate Before Stats
+    system_tokens = count_tokens(AGENT_1_SYSTEM_PROMPT)
+    user_tokens = count_tokens(TASK_DESCRIPTION)
+    tools_tokens = estimate_tools_tokens(tools)
+    initial_input_tokens = system_tokens + user_tokens + tools_tokens
+    
     print("=" * 80)
     print("AGENT EXAMPLE 1: Traditional Tool Calling Approach")
     print("=" * 80)
     print(f"Total tools loaded into context: {len(tools)}")
     print("All tool schemas are in the agent's system prompt from the start.")
+    
+    print_agent_overview(
+        stage="before",
+        tools_count=len(tools),
+        input_tokens=initial_input_tokens,
+        tool_calls=0,
+        output_tokens=0,
+        total_tokens=initial_input_tokens
+    )
+    
     print("=" * 80)
     print()
     
@@ -119,6 +149,45 @@ def main():
     final_message = result["messages"][-1]
     print(final_message.content if hasattr(final_message, 'content') else str(final_message))
     print()
+    
+    # Calculate After Stats
+    messages = result["messages"]
+    
+    # Count tool calls and outputs
+    tool_calls_count = 0
+    generated_tokens = 0
+    tool_outputs_tokens = 0
+    
+    for msg in messages:
+        if isinstance(msg, AIMessage):
+            # Content can be a string or list of blocks (e.g. text + tool_use)
+            content = msg.content
+            if isinstance(content, list):
+                # Extract text from content blocks if it's a list
+                text_content = ""
+                for block in content:
+                    if isinstance(block, dict) and "text" in block:
+                        text_content += block["text"]
+                    elif hasattr(block, "text"):
+                        text_content += block.text
+                generated_tokens += count_tokens(text_content)
+            else:
+                generated_tokens += count_tokens(str(content))
+                
+            tool_calls_count += len(msg.tool_calls)
+        elif isinstance(msg, ToolMessage):
+            tool_outputs_tokens += count_tokens(str(msg.content))
+            
+    final_total_tokens = initial_input_tokens + generated_tokens + tool_outputs_tokens
+    
+    print_agent_overview(
+        stage="after",
+        tools_count=len(tools),
+        input_tokens=initial_input_tokens, # Base input
+        tool_calls=tool_calls_count,
+        output_tokens=generated_tokens,
+        total_tokens=final_total_tokens
+    )
     
     # Note: In a real scenario with actual large tool descriptions,
     # you would observe significant token usage in the initial prompt
