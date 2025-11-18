@@ -1,4 +1,4 @@
-# Executing MCP Tools as Code: A Better Way for LLM Agents to Use Tools
+# MCP Code Mode: Context Engineering for Efficient Tool Execution in LLM Agents
 
 If you've been working with LLM agents, you've probably run into this frustration: your agent has dozens of tools available, but it only needs two or three for a specific task. Yet, all those tool definitions—names, parameters, descriptions, types—get dumped into the system prompt anyway, eating up precious context window space. Even worse, when tools need to chain together and pass large intermediate results, you're basically paying an expensive autoregressive model to act as a glorified copy-paste machine.
 
@@ -127,7 +127,7 @@ This approach shines when:
 
 It's not a silver bullet—if you only have 3-4 tools total and they never chain, the traditional approach works fine. But as your toolkits grow and your use cases get more complex, code execution mode becomes increasingly attractive.
 
-## Is This Something Totally New ?
+## Is This Something Totally New?
 
 Absolutely NOT! It is very similar to [CodeAct](https://arxiv.org/abs/2402.01030), an agent that plans and acts in code (python code) instead of natural language, which is different than conventional [ReAct](https://arxiv.org/abs/2210.03629) agent we are used to. The Hugging Face [smolagents](https://github.com/huggingface/smolagents) library already provides first-class support for this type of agents.
 
