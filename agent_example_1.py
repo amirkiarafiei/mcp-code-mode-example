@@ -50,15 +50,16 @@ load_dotenv()
 # from langchain_classic.globals import set_debug
 # set_debug(True)
 
-def print_agent_overview(stage: str, tools_count: int, input_tokens: int, tool_calls: int, output_tokens: int, total_tokens: int):
+def print_agent_overview(stage: str, tools_count: int, tool_calls: int, initial_tokens: int, tool_results_tokens: int, llm_generated_tokens: int, total_tokens: int):
     print("=" * 80) 
     print(f"AGENT CONTEXT OVERVIEW {stage}:")
     print("=" * 80) 
     print(f"Available Tools: {tools_count}")
-    print(f"Input Tokens: {input_tokens}")
     print(f"Tool Calls: {tool_calls}")
-    print(f"Generated Tokens: {output_tokens}" if stage == "before" else f"Output Tokens: {output_tokens}")
-    print(f"Total Tokens in Context Window: {total_tokens}")
+    print(f"Initial Tokens in Context: {initial_tokens}")
+    print(f"Tool Results Tokens: {tool_results_tokens}")
+    print(f"LLM Generated Tokens: {llm_generated_tokens}")
+    print(f"Final Tokens in Context Window: {total_tokens}")
     print("=" * 80)
 
 def main():
@@ -126,9 +127,10 @@ def main():
     print_agent_overview(
         stage="before",
         tools_count=len(tools),
-        input_tokens=initial_input_tokens,
         tool_calls=0,
-        output_tokens=0,
+        initial_tokens=initial_input_tokens,
+        tool_results_tokens=0,
+        llm_generated_tokens=0,
         total_tokens=initial_input_tokens
     )
     
@@ -175,6 +177,10 @@ def main():
                 generated_tokens += count_tokens(str(content))
                 
             tool_calls_count += len(msg.tool_calls)
+            # Also count tokens used by tool calls (arguments) as this is part of LLM generation
+            for tool_call in msg.tool_calls:
+                generated_tokens += count_tokens(str(tool_call))
+                
         elif isinstance(msg, ToolMessage):
             tool_outputs_tokens += count_tokens(str(msg.content))
             
@@ -183,9 +189,10 @@ def main():
     print_agent_overview(
         stage="after",
         tools_count=len(tools),
-        input_tokens=initial_input_tokens, # Base input
         tool_calls=tool_calls_count,
-        output_tokens=generated_tokens,
+        initial_tokens=initial_input_tokens,
+        tool_results_tokens=tool_outputs_tokens,
+        llm_generated_tokens=generated_tokens,
         total_tokens=final_total_tokens
     )
     
