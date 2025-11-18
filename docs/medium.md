@@ -81,6 +81,26 @@ await upload_file(summary);
 
 Notice what just happened: the massive meeting summary never touched the LLM's context. It went straight from the Teams tool output to the Drive tool input, mediated by the operating system, not by expensive token generation.
 
+## Real-World Comparison
+
+We compared both approaches on a realistic task: downloading a large meeting summary from Microsoft Teams and uploading it to Google Drive, with 20 total tools available in the environment. The results below clearly demonstrate the efficiency gains of the Code Execution Approach.
+
+| Metric | Traditional Tool Calling | Code Execution Approach |
+| :--- | :--- | :--- |
+| **Available Tools** | 20 | 3 |
+| **Tool Calls** | 2 | 6 |
+| **Initial Tokens in Context** | 10,153 | 621 |
+| **Tool Results Tokens** | 1,782 | 797 |
+| **LLM Generated Tokens** | 2,276 | 629 |
+| **Final Tokens in Context Window** | 14,211 | 2,047 |
+
+**Key Takeaways:**
+*   **~94% Reduction in Initial Context:** By not loading all 20 tool definitions upfront.
+*   **~86% Reduction in Final Context:** Because large data (the meeting summary) flowed through the code execution environment, not the LLM's context window.
+*   **More Efficient Generation:** The agent wrote a concise script instead of generating verbose tool calls and processing massive string outputs.
+
+You can find the [experiment codes here](https://github.com/amirkiarafiei/mcp-code-mode-example).
+
 ## Why This Works Better
 
 ### Benefit 1: Efficient Context Management
@@ -110,7 +130,6 @@ It's not a silver bullet—if you only have 3-4 tools total and they never chain
 ## Is This Something Totally New ?
 
 Absolutely NOT! It is very similar to [CodeAct](https://arxiv.org/abs/2402.01030), an agent that plans and acts in code (python code) instead of natural language, which is different than conventional [ReAct](https://arxiv.org/abs/2210.03629) agent we are used to. The Hugging Face [smolagents](https://github.com/huggingface/smolagents) library already provides first-class support for this type of agents.
-
 
 ## Wrapping Up
 
