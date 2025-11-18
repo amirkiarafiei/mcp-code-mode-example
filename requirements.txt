@@ -2,3 +2,4 @@ langchain>=1.0.0
 langchain-google-genai>=3.0.0
 python-dotenv>=1.0.0
 langchain-core>=1.0.0
+tiktoken
